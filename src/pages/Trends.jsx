@@ -12,7 +12,7 @@ const Trends = () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        "http://localhost:5000/get_trending_hashtags",
+        `${process.env.REACT_APP_BACKEND_URL}/get_trending_hashtags`,
         { timeout: 10000 }
       );
       setHashtags(response.data.hashtags || []);
