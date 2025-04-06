@@ -1,4 +1,3 @@
-// src/pages/Reports.jsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -22,7 +21,7 @@ const Reports = () => {
   useEffect(() => {
     const fetchReport = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/report");
+        const res = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/report`);
         setReport(res.data);
       } catch (e) {
         setError("Failed to load predictions");
