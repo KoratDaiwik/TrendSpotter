@@ -1,16 +1,18 @@
-
 import React, { useState } from "react";
 import axios from "axios";
 import { Doughnut } from "react-chartjs-2";
 import { Chart, ArcElement, Tooltip, Legend } from "chart.js";
-import PostList from "../components/PostList";
 import DOMPurify from "dompurify";
 import PropTypes from "prop-types";
 
+import PostList from "../components/PostList";
+
 Chart.register(ArcElement, Tooltip, Legend);
 
+// Utility for sanitizing text
 const sanitizeHTML = (text) => DOMPurify.sanitize(text);
 
+// Placeholder export functions
 const exportToCSV = (results) => {
   console.log("Exporting to CSV:", results);
   alert("CSV export functionality coming soon!");
@@ -42,8 +44,9 @@ const SentimentAnalysis = () => {
     setError(null);
 
     try {
+      const baseUrl = process.env.REACT_APP_BACKEND_URL;
       const response = await axios.post(
-        "http://localhost:5000/analyze_sentiment",
+        `${baseUrl}/analyze_sentiment`,
         {
           subreddit: subreddit.trim().toLowerCase(),
           limit: parseInt(limit),
@@ -54,8 +57,9 @@ const SentimentAnalysis = () => {
         }
       );
 
-      if (!response.data?.posts)
+      if (!response.data?.posts) {
         throw new Error("Invalid data format from server");
+      }
 
       setResults(response.data);
     } catch (err) {
@@ -82,83 +86,82 @@ const SentimentAnalysis = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Input Form */}
       <div className="bg-gray-800 p-6 rounded-2xl shadow-md mb-6">
-        <div className="p-6 rounded-lg shadow-md mb-6 bg-gray-700">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Subreddit
-              </label>
-              <input
-                type="text"
-                value={subreddit}
-                onChange={(e) => setSubreddit(e.target.value)}
-                className="w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"
-                placeholder="Enter subreddit"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Post Limit (1-100)
-              </label>
-              <input
-                type="number"
-                value={limit}
-                onChange={(e) =>
-                  setLimit(Math.min(100, Math.max(1, e.target.value)))
-                }
-                min="1"
-                max="100"
-                className="w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"
-              />
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Subreddit
+            </label>
+            <input
+              type="text"
+              value={subreddit}
+              onChange={(e) => setSubreddit(e.target.value)}
+              className="w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"
+              placeholder="Enter subreddit"
+            />
           </div>
-          <button
-            onClick={analyzeSentiment}
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {loading ? "Analyzing..." : "Analyze Sentiment"}
-          </button>
-          {error && (
-            <div className="mt-4 p-3 bg-red-800/20 text-red-300 rounded-lg">
-              ⚠️ {error}
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Post Limit (1-100)
+            </label>
+            <input
+              type="number"
+              value={limit}
+              onChange={(e) =>
+                setLimit(Math.min(100, Math.max(1, e.target.value)))
+              }
+              min="1"
+              max="100"
+              className="w-full p-2 border border-gray-600 rounded-md bg-gray-800 text-white"
+            />
+          </div>
         </div>
+        <button
+          onClick={analyzeSentiment}
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+        >
+          {loading ? "Analyzing..." : "Analyze Sentiment"}
+        </button>
+        {error && (
+          <div className="mt-4 p-3 bg-red-800/20 text-red-300 rounded-lg">
+            ⚠️ {error}
+          </div>
+        )}
       </div>
 
+      {/* Results Display */}
       {results && (
         <div className="bg-gray-800 p-6 rounded-2xl shadow-md">
           <h2 className="text-2xl font-bold mb-4 text-white">
             r/{results.subreddit} Analysis
           </h2>
+
           <div className="grid md:grid-cols-2 gap-6 mb-8">
+            {/* Doughnut Chart */}
             <div className="bg-gray-700/20 p-4 rounded-xl">
-              <h3 className="text-xl font-semibold mb-4">
-                Sentiment Distribution
-              </h3>
+              <h3 className="text-xl font-semibold mb-4">Sentiment Distribution</h3>
               <div className="h-64">
-                {chartData && (
-                  <Doughnut
-                    data={chartData}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: {
-                          labels: {
-                            color: "#fff",
-                            font: { size: 14 },
-                          },
+                <Doughnut
+                  data={chartData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        labels: {
+                          color: "#fff",
+                          font: { size: 14 },
                         },
                       },
-                    }}
-                  />
-                )}
+                    },
+                  }}
+                />
               </div>
             </div>
 
+            {/* Stats */}
             <div className="bg-gray-700/20 p-4 rounded-xl">
               <h3 className="text-xl font-semibold mb-4">Statistics</h3>
               <div className="space-y-3">
@@ -182,8 +185,10 @@ const SentimentAnalysis = () => {
             </div>
           </div>
 
+          {/* Posts List */}
           <PostList posts={results.posts} />
 
+          {/* Export Buttons */}
           <div className="flex gap-4 mt-6">
             <button
               onClick={() => exportToCSV(results)}
@@ -204,6 +209,7 @@ const SentimentAnalysis = () => {
   );
 };
 
+// Stats Display Component
 const StatItem = ({ label, value, color = "text-white" }) => (
   <div className="flex justify-between items-center">
     <span className="text-gray-400">{label}:</span>
